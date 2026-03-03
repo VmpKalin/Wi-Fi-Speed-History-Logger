@@ -17,7 +17,20 @@ class AppDatabase extends _$AppDatabase {
   static AppDatabase get instance => _instance ??= AppDatabase._();
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (migrator, from, to) async {
+          if (from < 2) {
+            await migrator.addColumn(speedResults, speedResults.ssid);
+            await migrator.addColumn(speedResults, speedResults.bssid);
+            await migrator.addColumn(speedResults, speedResults.externalIp);
+            await migrator.addColumn(speedResults, speedResults.ispName);
+            await migrator.addColumn(speedResults, speedResults.localIp);
+          }
+        },
+      );
 
   Future<int> insertResult(SpeedResultsCompanion entry) {
     return into(speedResults).insert(entry);
@@ -49,6 +62,27 @@ class AppDatabase extends _$AppDatabase {
       map.putIfAbsent(day, () => []).add(result);
     }
     return map;
+  }
+
+  /// Returns unique network identifiers (SSID + BSSID pairs) with their test counts.
+  Future<List<SpeedResult>> getResultsForNetwork(
+      String? ssid, String? bssid) async {
+    final query = select(speedResults)
+      ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]);
+
+    if (ssid != null) {
+      query.where((t) => t.ssid.equals(ssid));
+    } else {
+      query.where((t) => t.ssid.isNull());
+    }
+
+    if (bssid != null) {
+      query.where((t) => t.bssid.equals(bssid));
+    } else {
+      query.where((t) => t.bssid.isNull());
+    }
+
+    return query.get();
   }
 
   Future<int> deleteAllResults() {

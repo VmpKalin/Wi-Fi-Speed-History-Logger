@@ -181,3 +181,59 @@ Generate all files completely — no placeholders, no TODO comments. The app sho
    > *"Set up drift code generation with build_runner for this project and generate the database files"*
 3. To test background tasks on iOS locally use the Xcode simulator debug command:
    > `e -l objc -- (void)[[BGTaskScheduler sharedScheduler] _simulateLaunchForTaskWithIdentifier:@"com.netlog.speedtest"]`
+
+
+
+
+Second prompt:
+
+Ok, based on current functional, I want to extend it:
+1. I need to gather more details about network, to have proofs that this data related to it.
+2. To have ability to create reports for network measurement. Firstly, we need to define, that these measurements are from same network, just after connect all of them and create reports based on these data with ability to export it somewhere.
+3. Question, can I use these reports after to show for my internet provider, if it doesn't correspond to contract terms?
+
+---
+
+### Implementation: Enhanced Network Data & Reports
+
+#### 1. Extended Network Metadata
+
+Each speed test now collects:
+- **SSID** — Wi-Fi network name (via `network_info_plus`)
+- **BSSID** — Router MAC address (unique hardware identifier)
+- **External IP** — Public IP address (via `api.ipify.org`)
+- **ISP Name** — Internet Service Provider (via `ip-api.com`)
+- **Local IP** — Device's local network IP
+
+This proves which specific network each test was performed on.
+
+#### 2. Network-Grouped Reports
+
+- Tests are automatically grouped by network (SSID + BSSID pair)
+- New **Reports** tab shows all detected networks with test counts and date ranges
+- Each network report includes:
+  - Full network identification details
+  - Summary statistics (avg/min/max download, upload, ping)
+  - Complete test history
+- **Export** as PDF or CSV via the share menu
+
+#### 3. Using Reports with Your ISP
+
+Yes — these reports serve as supporting evidence when filing complaints. They include:
+- Network identification proving tests were on *their* network
+- Timestamped measurements showing consistent underperformance
+- Methodology disclosure (Cloudflare HTTP endpoints)
+- Statistical summaries showing gaps vs. contracted speeds
+
+While not legally certified measurements, ISPs and consumer protection agencies commonly accept this type of documented evidence. The more data points over time, the stronger the case.
+
+#### New Packages Added
+- `network_info_plus` — Wi-Fi SSID, BSSID, local IP
+- `permission_handler` — Runtime location permission (required for SSID/BSSID)
+- `pdf` — PDF report generation
+- `share_plus` — Native share sheet for export
+
+#### Platform Permissions Added
+- **Android**: `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `ACCESS_WIFI_STATE`, `CHANGE_WIFI_STATE`
+- **iOS**: `NSLocationWhenInUseUsageDescription`, Wi-Fi Info entitlement (`com.apple.developer.networking.wifi-info`)
+3. Question, can I use these report after to show for my internet provider, if it doesn’t correspond to contract terms? Depends on the country

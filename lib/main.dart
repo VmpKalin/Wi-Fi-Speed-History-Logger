@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/speed_providers.dart';
 import 'screens/history_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/reports_screen.dart';
 import 'screens/settings_screen.dart';
 import 'services/background_service.dart';
 
@@ -65,6 +66,7 @@ class _AppShellState extends State<AppShell> {
   static const _screens = <Widget>[
     HomeScreen(),
     HistoryScreen(),
+    ReportsScreen(),
     SettingsScreen(),
   ];
 
@@ -85,6 +87,11 @@ class _AppShellState extends State<AppShell> {
             icon: Icon(Icons.history_outlined),
             selectedIcon: Icon(Icons.history),
             label: 'History',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.assessment_outlined),
+            selectedIcon: Icon(Icons.assessment),
+            label: 'Reports',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),

@@ -88,6 +88,57 @@ class $SpeedResultsTable extends SpeedResults
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _ssidMeta = const VerificationMeta('ssid');
+  @override
+  late final GeneratedColumn<String> ssid = GeneratedColumn<String>(
+    'ssid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _bssidMeta = const VerificationMeta('bssid');
+  @override
+  late final GeneratedColumn<String> bssid = GeneratedColumn<String>(
+    'bssid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _externalIpMeta = const VerificationMeta(
+    'externalIp',
+  );
+  @override
+  late final GeneratedColumn<String> externalIp = GeneratedColumn<String>(
+    'external_ip',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _ispNameMeta = const VerificationMeta(
+    'ispName',
+  );
+  @override
+  late final GeneratedColumn<String> ispName = GeneratedColumn<String>(
+    'isp_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _localIpMeta = const VerificationMeta(
+    'localIp',
+  );
+  @override
+  late final GeneratedColumn<String> localIp = GeneratedColumn<String>(
+    'local_ip',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -97,6 +148,11 @@ class $SpeedResultsTable extends SpeedResults
     pingMs,
     networkType,
     failed,
+    ssid,
+    bssid,
+    externalIp,
+    ispName,
+    localIp,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -159,6 +215,36 @@ class $SpeedResultsTable extends SpeedResults
         failed.isAcceptableOrUnknown(data['failed']!, _failedMeta),
       );
     }
+    if (data.containsKey('ssid')) {
+      context.handle(
+        _ssidMeta,
+        ssid.isAcceptableOrUnknown(data['ssid']!, _ssidMeta),
+      );
+    }
+    if (data.containsKey('bssid')) {
+      context.handle(
+        _bssidMeta,
+        bssid.isAcceptableOrUnknown(data['bssid']!, _bssidMeta),
+      );
+    }
+    if (data.containsKey('external_ip')) {
+      context.handle(
+        _externalIpMeta,
+        externalIp.isAcceptableOrUnknown(data['external_ip']!, _externalIpMeta),
+      );
+    }
+    if (data.containsKey('isp_name')) {
+      context.handle(
+        _ispNameMeta,
+        ispName.isAcceptableOrUnknown(data['isp_name']!, _ispNameMeta),
+      );
+    }
+    if (data.containsKey('local_ip')) {
+      context.handle(
+        _localIpMeta,
+        localIp.isAcceptableOrUnknown(data['local_ip']!, _localIpMeta),
+      );
+    }
     return context;
   }
 
@@ -196,6 +282,26 @@ class $SpeedResultsTable extends SpeedResults
         DriftSqlType.bool,
         data['${effectivePrefix}failed'],
       )!,
+      ssid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ssid'],
+      ),
+      bssid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bssid'],
+      ),
+      externalIp: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}external_ip'],
+      ),
+      ispName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}isp_name'],
+      ),
+      localIp: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_ip'],
+      ),
     );
   }
 
@@ -213,6 +319,11 @@ class SpeedResult extends DataClass implements Insertable<SpeedResult> {
   final int? pingMs;
   final String networkType;
   final bool failed;
+  final String? ssid;
+  final String? bssid;
+  final String? externalIp;
+  final String? ispName;
+  final String? localIp;
   const SpeedResult({
     required this.id,
     required this.timestamp,
@@ -221,6 +332,11 @@ class SpeedResult extends DataClass implements Insertable<SpeedResult> {
     this.pingMs,
     required this.networkType,
     required this.failed,
+    this.ssid,
+    this.bssid,
+    this.externalIp,
+    this.ispName,
+    this.localIp,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -238,6 +354,21 @@ class SpeedResult extends DataClass implements Insertable<SpeedResult> {
     }
     map['network_type'] = Variable<String>(networkType);
     map['failed'] = Variable<bool>(failed);
+    if (!nullToAbsent || ssid != null) {
+      map['ssid'] = Variable<String>(ssid);
+    }
+    if (!nullToAbsent || bssid != null) {
+      map['bssid'] = Variable<String>(bssid);
+    }
+    if (!nullToAbsent || externalIp != null) {
+      map['external_ip'] = Variable<String>(externalIp);
+    }
+    if (!nullToAbsent || ispName != null) {
+      map['isp_name'] = Variable<String>(ispName);
+    }
+    if (!nullToAbsent || localIp != null) {
+      map['local_ip'] = Variable<String>(localIp);
+    }
     return map;
   }
 
@@ -256,6 +387,19 @@ class SpeedResult extends DataClass implements Insertable<SpeedResult> {
           : Value(pingMs),
       networkType: Value(networkType),
       failed: Value(failed),
+      ssid: ssid == null && nullToAbsent ? const Value.absent() : Value(ssid),
+      bssid: bssid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bssid),
+      externalIp: externalIp == null && nullToAbsent
+          ? const Value.absent()
+          : Value(externalIp),
+      ispName: ispName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ispName),
+      localIp: localIp == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localIp),
     );
   }
 
@@ -272,6 +416,11 @@ class SpeedResult extends DataClass implements Insertable<SpeedResult> {
       pingMs: serializer.fromJson<int?>(json['pingMs']),
       networkType: serializer.fromJson<String>(json['networkType']),
       failed: serializer.fromJson<bool>(json['failed']),
+      ssid: serializer.fromJson<String?>(json['ssid']),
+      bssid: serializer.fromJson<String?>(json['bssid']),
+      externalIp: serializer.fromJson<String?>(json['externalIp']),
+      ispName: serializer.fromJson<String?>(json['ispName']),
+      localIp: serializer.fromJson<String?>(json['localIp']),
     );
   }
   @override
@@ -285,6 +434,11 @@ class SpeedResult extends DataClass implements Insertable<SpeedResult> {
       'pingMs': serializer.toJson<int?>(pingMs),
       'networkType': serializer.toJson<String>(networkType),
       'failed': serializer.toJson<bool>(failed),
+      'ssid': serializer.toJson<String?>(ssid),
+      'bssid': serializer.toJson<String?>(bssid),
+      'externalIp': serializer.toJson<String?>(externalIp),
+      'ispName': serializer.toJson<String?>(ispName),
+      'localIp': serializer.toJson<String?>(localIp),
     };
   }
 
@@ -296,6 +450,11 @@ class SpeedResult extends DataClass implements Insertable<SpeedResult> {
     Value<int?> pingMs = const Value.absent(),
     String? networkType,
     bool? failed,
+    Value<String?> ssid = const Value.absent(),
+    Value<String?> bssid = const Value.absent(),
+    Value<String?> externalIp = const Value.absent(),
+    Value<String?> ispName = const Value.absent(),
+    Value<String?> localIp = const Value.absent(),
   }) => SpeedResult(
     id: id ?? this.id,
     timestamp: timestamp ?? this.timestamp,
@@ -304,6 +463,11 @@ class SpeedResult extends DataClass implements Insertable<SpeedResult> {
     pingMs: pingMs.present ? pingMs.value : this.pingMs,
     networkType: networkType ?? this.networkType,
     failed: failed ?? this.failed,
+    ssid: ssid.present ? ssid.value : this.ssid,
+    bssid: bssid.present ? bssid.value : this.bssid,
+    externalIp: externalIp.present ? externalIp.value : this.externalIp,
+    ispName: ispName.present ? ispName.value : this.ispName,
+    localIp: localIp.present ? localIp.value : this.localIp,
   );
   SpeedResult copyWithCompanion(SpeedResultsCompanion data) {
     return SpeedResult(
@@ -320,6 +484,13 @@ class SpeedResult extends DataClass implements Insertable<SpeedResult> {
           ? data.networkType.value
           : this.networkType,
       failed: data.failed.present ? data.failed.value : this.failed,
+      ssid: data.ssid.present ? data.ssid.value : this.ssid,
+      bssid: data.bssid.present ? data.bssid.value : this.bssid,
+      externalIp: data.externalIp.present
+          ? data.externalIp.value
+          : this.externalIp,
+      ispName: data.ispName.present ? data.ispName.value : this.ispName,
+      localIp: data.localIp.present ? data.localIp.value : this.localIp,
     );
   }
 
@@ -332,7 +503,12 @@ class SpeedResult extends DataClass implements Insertable<SpeedResult> {
           ..write('uploadMbps: $uploadMbps, ')
           ..write('pingMs: $pingMs, ')
           ..write('networkType: $networkType, ')
-          ..write('failed: $failed')
+          ..write('failed: $failed, ')
+          ..write('ssid: $ssid, ')
+          ..write('bssid: $bssid, ')
+          ..write('externalIp: $externalIp, ')
+          ..write('ispName: $ispName, ')
+          ..write('localIp: $localIp')
           ..write(')'))
         .toString();
   }
@@ -346,6 +522,11 @@ class SpeedResult extends DataClass implements Insertable<SpeedResult> {
     pingMs,
     networkType,
     failed,
+    ssid,
+    bssid,
+    externalIp,
+    ispName,
+    localIp,
   );
   @override
   bool operator ==(Object other) =>
@@ -357,7 +538,12 @@ class SpeedResult extends DataClass implements Insertable<SpeedResult> {
           other.uploadMbps == this.uploadMbps &&
           other.pingMs == this.pingMs &&
           other.networkType == this.networkType &&
-          other.failed == this.failed);
+          other.failed == this.failed &&
+          other.ssid == this.ssid &&
+          other.bssid == this.bssid &&
+          other.externalIp == this.externalIp &&
+          other.ispName == this.ispName &&
+          other.localIp == this.localIp);
 }
 
 class SpeedResultsCompanion extends UpdateCompanion<SpeedResult> {
@@ -368,6 +554,11 @@ class SpeedResultsCompanion extends UpdateCompanion<SpeedResult> {
   final Value<int?> pingMs;
   final Value<String> networkType;
   final Value<bool> failed;
+  final Value<String?> ssid;
+  final Value<String?> bssid;
+  final Value<String?> externalIp;
+  final Value<String?> ispName;
+  final Value<String?> localIp;
   const SpeedResultsCompanion({
     this.id = const Value.absent(),
     this.timestamp = const Value.absent(),
@@ -376,6 +567,11 @@ class SpeedResultsCompanion extends UpdateCompanion<SpeedResult> {
     this.pingMs = const Value.absent(),
     this.networkType = const Value.absent(),
     this.failed = const Value.absent(),
+    this.ssid = const Value.absent(),
+    this.bssid = const Value.absent(),
+    this.externalIp = const Value.absent(),
+    this.ispName = const Value.absent(),
+    this.localIp = const Value.absent(),
   });
   SpeedResultsCompanion.insert({
     this.id = const Value.absent(),
@@ -385,6 +581,11 @@ class SpeedResultsCompanion extends UpdateCompanion<SpeedResult> {
     this.pingMs = const Value.absent(),
     required String networkType,
     this.failed = const Value.absent(),
+    this.ssid = const Value.absent(),
+    this.bssid = const Value.absent(),
+    this.externalIp = const Value.absent(),
+    this.ispName = const Value.absent(),
+    this.localIp = const Value.absent(),
   }) : timestamp = Value(timestamp),
        networkType = Value(networkType);
   static Insertable<SpeedResult> custom({
@@ -395,6 +596,11 @@ class SpeedResultsCompanion extends UpdateCompanion<SpeedResult> {
     Expression<int>? pingMs,
     Expression<String>? networkType,
     Expression<bool>? failed,
+    Expression<String>? ssid,
+    Expression<String>? bssid,
+    Expression<String>? externalIp,
+    Expression<String>? ispName,
+    Expression<String>? localIp,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -404,6 +610,11 @@ class SpeedResultsCompanion extends UpdateCompanion<SpeedResult> {
       if (pingMs != null) 'ping_ms': pingMs,
       if (networkType != null) 'network_type': networkType,
       if (failed != null) 'failed': failed,
+      if (ssid != null) 'ssid': ssid,
+      if (bssid != null) 'bssid': bssid,
+      if (externalIp != null) 'external_ip': externalIp,
+      if (ispName != null) 'isp_name': ispName,
+      if (localIp != null) 'local_ip': localIp,
     });
   }
 
@@ -415,6 +626,11 @@ class SpeedResultsCompanion extends UpdateCompanion<SpeedResult> {
     Value<int?>? pingMs,
     Value<String>? networkType,
     Value<bool>? failed,
+    Value<String?>? ssid,
+    Value<String?>? bssid,
+    Value<String?>? externalIp,
+    Value<String?>? ispName,
+    Value<String?>? localIp,
   }) {
     return SpeedResultsCompanion(
       id: id ?? this.id,
@@ -424,6 +640,11 @@ class SpeedResultsCompanion extends UpdateCompanion<SpeedResult> {
       pingMs: pingMs ?? this.pingMs,
       networkType: networkType ?? this.networkType,
       failed: failed ?? this.failed,
+      ssid: ssid ?? this.ssid,
+      bssid: bssid ?? this.bssid,
+      externalIp: externalIp ?? this.externalIp,
+      ispName: ispName ?? this.ispName,
+      localIp: localIp ?? this.localIp,
     );
   }
 
@@ -451,6 +672,21 @@ class SpeedResultsCompanion extends UpdateCompanion<SpeedResult> {
     if (failed.present) {
       map['failed'] = Variable<bool>(failed.value);
     }
+    if (ssid.present) {
+      map['ssid'] = Variable<String>(ssid.value);
+    }
+    if (bssid.present) {
+      map['bssid'] = Variable<String>(bssid.value);
+    }
+    if (externalIp.present) {
+      map['external_ip'] = Variable<String>(externalIp.value);
+    }
+    if (ispName.present) {
+      map['isp_name'] = Variable<String>(ispName.value);
+    }
+    if (localIp.present) {
+      map['local_ip'] = Variable<String>(localIp.value);
+    }
     return map;
   }
 
@@ -463,7 +699,12 @@ class SpeedResultsCompanion extends UpdateCompanion<SpeedResult> {
           ..write('uploadMbps: $uploadMbps, ')
           ..write('pingMs: $pingMs, ')
           ..write('networkType: $networkType, ')
-          ..write('failed: $failed')
+          ..write('failed: $failed, ')
+          ..write('ssid: $ssid, ')
+          ..write('bssid: $bssid, ')
+          ..write('externalIp: $externalIp, ')
+          ..write('ispName: $ispName, ')
+          ..write('localIp: $localIp')
           ..write(')'))
         .toString();
   }
@@ -489,6 +730,11 @@ typedef $$SpeedResultsTableCreateCompanionBuilder =
       Value<int?> pingMs,
       required String networkType,
       Value<bool> failed,
+      Value<String?> ssid,
+      Value<String?> bssid,
+      Value<String?> externalIp,
+      Value<String?> ispName,
+      Value<String?> localIp,
     });
 typedef $$SpeedResultsTableUpdateCompanionBuilder =
     SpeedResultsCompanion Function({
@@ -499,6 +745,11 @@ typedef $$SpeedResultsTableUpdateCompanionBuilder =
       Value<int?> pingMs,
       Value<String> networkType,
       Value<bool> failed,
+      Value<String?> ssid,
+      Value<String?> bssid,
+      Value<String?> externalIp,
+      Value<String?> ispName,
+      Value<String?> localIp,
     });
 
 class $$SpeedResultsTableFilterComposer
@@ -542,6 +793,31 @@ class $$SpeedResultsTableFilterComposer
 
   ColumnFilters<bool> get failed => $composableBuilder(
     column: $table.failed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ssid => $composableBuilder(
+    column: $table.ssid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get bssid => $composableBuilder(
+    column: $table.bssid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get externalIp => $composableBuilder(
+    column: $table.externalIp,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ispName => $composableBuilder(
+    column: $table.ispName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localIp => $composableBuilder(
+    column: $table.localIp,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -589,6 +865,31 @@ class $$SpeedResultsTableOrderingComposer
     column: $table.failed,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get ssid => $composableBuilder(
+    column: $table.ssid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get bssid => $composableBuilder(
+    column: $table.bssid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get externalIp => $composableBuilder(
+    column: $table.externalIp,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ispName => $composableBuilder(
+    column: $table.ispName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get localIp => $composableBuilder(
+    column: $table.localIp,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SpeedResultsTableAnnotationComposer
@@ -626,6 +927,23 @@ class $$SpeedResultsTableAnnotationComposer
 
   GeneratedColumn<bool> get failed =>
       $composableBuilder(column: $table.failed, builder: (column) => column);
+
+  GeneratedColumn<String> get ssid =>
+      $composableBuilder(column: $table.ssid, builder: (column) => column);
+
+  GeneratedColumn<String> get bssid =>
+      $composableBuilder(column: $table.bssid, builder: (column) => column);
+
+  GeneratedColumn<String> get externalIp => $composableBuilder(
+    column: $table.externalIp,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get ispName =>
+      $composableBuilder(column: $table.ispName, builder: (column) => column);
+
+  GeneratedColumn<String> get localIp =>
+      $composableBuilder(column: $table.localIp, builder: (column) => column);
 }
 
 class $$SpeedResultsTableTableManager
@@ -666,6 +984,11 @@ class $$SpeedResultsTableTableManager
                 Value<int?> pingMs = const Value.absent(),
                 Value<String> networkType = const Value.absent(),
                 Value<bool> failed = const Value.absent(),
+                Value<String?> ssid = const Value.absent(),
+                Value<String?> bssid = const Value.absent(),
+                Value<String?> externalIp = const Value.absent(),
+                Value<String?> ispName = const Value.absent(),
+                Value<String?> localIp = const Value.absent(),
               }) => SpeedResultsCompanion(
                 id: id,
                 timestamp: timestamp,
@@ -674,6 +997,11 @@ class $$SpeedResultsTableTableManager
                 pingMs: pingMs,
                 networkType: networkType,
                 failed: failed,
+                ssid: ssid,
+                bssid: bssid,
+                externalIp: externalIp,
+                ispName: ispName,
+                localIp: localIp,
               ),
           createCompanionCallback:
               ({
@@ -684,6 +1012,11 @@ class $$SpeedResultsTableTableManager
                 Value<int?> pingMs = const Value.absent(),
                 required String networkType,
                 Value<bool> failed = const Value.absent(),
+                Value<String?> ssid = const Value.absent(),
+                Value<String?> bssid = const Value.absent(),
+                Value<String?> externalIp = const Value.absent(),
+                Value<String?> ispName = const Value.absent(),
+                Value<String?> localIp = const Value.absent(),
               }) => SpeedResultsCompanion.insert(
                 id: id,
                 timestamp: timestamp,
@@ -692,6 +1025,11 @@ class $$SpeedResultsTableTableManager
                 pingMs: pingMs,
                 networkType: networkType,
                 failed: failed,
+                ssid: ssid,
+                bssid: bssid,
+                externalIp: externalIp,
+                ispName: ispName,
+                localIp: localIp,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

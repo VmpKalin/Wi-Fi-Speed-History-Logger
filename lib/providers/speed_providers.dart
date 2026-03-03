@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/background_service.dart';
 import '../services/database_service.dart';
+import '../services/network_info_service.dart';
 import '../services/speed_test_service.dart';
 
 // ── Core services ──
@@ -12,6 +13,8 @@ import '../services/speed_test_service.dart';
 final databaseProvider = Provider<AppDatabase>((_) => AppDatabase.instance);
 
 final speedTestServiceProvider = Provider<SpeedTestService>((_) => SpeedTestService());
+
+final networkInfoServiceProvider = Provider<NetworkInfoService>((_) => NetworkInfoService());
 
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError('Override in ProviderScope');
@@ -82,6 +85,7 @@ final runSpeedTestProvider = Provider<Future<void> Function()>((ref) {
     ref.read(isTestRunningProvider.notifier).state = true;
     try {
       final speedTest = ref.read(speedTestServiceProvider);
+      final networkInfoService = ref.read(networkInfoServiceProvider);
       final db = ref.read(databaseProvider);
 
       final connectivityResult = await Connectivity().checkConnectivity();
@@ -90,7 +94,11 @@ final runSpeedTestProvider = Provider<Future<void> Function()>((ref) {
               ? 'wifi'
               : 'cellular';
 
-      final result = await speedTest.runFullTest();
+      final networkDetailsFuture = networkInfoService.collectNetworkDetails();
+      final resultFuture = speedTest.runFullTest();
+
+      final networkDetails = await networkDetailsFuture;
+      final result = await resultFuture;
 
       await db.insertResult(SpeedResultsCompanion(
         timestamp: Value(DateTime.now()),
@@ -99,6 +107,11 @@ final runSpeedTestProvider = Provider<Future<void> Function()>((ref) {
         pingMs: Value(result.pingMs),
         networkType: Value(networkType),
         failed: Value(result.failed),
+        ssid: Value(networkDetails.ssid),
+        bssid: Value(networkDetails.bssid),
+        externalIp: Value(networkDetails.externalIp),
+        ispName: Value(networkDetails.ispName),
+        localIp: Value(networkDetails.localIp),
       ));
 
       ref.invalidate(allResultsProvider);

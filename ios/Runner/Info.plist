@@ -53,6 +53,10 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>NetLog needs location access to identify your Wi-Fi network (SSID) for accurate speed test reporting.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>NetLog needs location access to identify your Wi-Fi network during background speed tests.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

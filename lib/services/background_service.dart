@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 import 'database_service.dart';
+import 'network_info_service.dart';
 import 'speed_test_service.dart';
 
 const _taskName = 'com.netlog.speedtest';
@@ -30,7 +31,13 @@ void callbackDispatcher() {
 
       final networkType = isWifi ? 'wifi' : 'cellular';
       final speedTest = SpeedTestService();
-      final result = await speedTest.runFullTest();
+      final networkInfoService = NetworkInfoService();
+
+      final networkDetailsFuture = networkInfoService.collectNetworkDetails();
+      final resultFuture = speedTest.runFullTest();
+
+      final networkDetails = await networkDetailsFuture;
+      final result = await resultFuture;
 
       final db = AppDatabase.instance;
       await db.insertResult(SpeedResultsCompanion(
@@ -40,6 +47,11 @@ void callbackDispatcher() {
         pingMs: Value(result.pingMs),
         networkType: Value(networkType),
         failed: Value(result.failed),
+        ssid: Value(networkDetails.ssid),
+        bssid: Value(networkDetails.bssid),
+        externalIp: Value(networkDetails.externalIp),
+        ispName: Value(networkDetails.ispName),
+        localIp: Value(networkDetails.localIp),
       ));
 
       // iOS doesn't support periodic tasks, so re-register a one-off task
