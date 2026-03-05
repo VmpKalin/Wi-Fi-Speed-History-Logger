@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -25,14 +26,26 @@ class NetworkInfoService {
   final _networkInfo = NetworkInfo();
 
   Future<bool> _ensureLocationPermission() async {
-    if (Platform.isAndroid || Platform.isIOS) {
-      var status = await Permission.locationWhenInUse.status;
-      if (!status.isGranted) {
-        status = await Permission.locationWhenInUse.request();
-      }
-      return status.isGranted;
+    if (!Platform.isAndroid && !Platform.isIOS) return true;
+
+    var status = await Permission.locationWhenInUse.status;
+
+    if (status.isPermanentlyDenied) {
+      debugPrint('NetLog: Location permission permanently denied. '
+          'SSID/BSSID will be unavailable. Open Settings to grant access.');
+      return false;
     }
-    return true;
+
+    if (!status.isGranted) {
+      status = await Permission.locationWhenInUse.request();
+    }
+
+    if (!status.isGranted) {
+      debugPrint('NetLog: Location permission denied. '
+          'SSID/BSSID requires location access on ${Platform.operatingSystem}.');
+    }
+
+    return status.isGranted;
   }
 
   Future<NetworkDetails> collectNetworkDetails() async {
@@ -42,16 +55,36 @@ class NetworkInfoService {
     String? externalIp;
     String? ispName;
 
-    final hasLocationPermission = await _ensureLocationPermission();
+    // iOS requires a paid Apple Developer account for the
+    // com.apple.developer.networking.wifi-info entitlement,
+    // so SSID/BSSID collection is Android-only for now.
+    if (!Platform.isIOS) {
+      final hasLocationPermission = await _ensureLocationPermission();
 
-    if (hasLocationPermission) {
-      try {
-        ssid = await _networkInfo.getWifiName();
-        ssid = ssid?.replaceAll('"', '');
-        bssid = await _networkInfo.getWifiBSSID();
-        localIp = await _networkInfo.getWifiIP();
-      } catch (_) {}
+      if (hasLocationPermission) {
+        try {
+          ssid = await _networkInfo.getWifiName();
+          ssid = ssid?.replaceAll('"', '');
+
+          if (ssid == '<unknown ssid>' || ssid == '0x') {
+            ssid = null;
+          }
+
+          bssid = await _networkInfo.getWifiBSSID();
+          if (bssid == '02:00:00:00:00:00' || bssid == '00:00:00:00:00:00') {
+            bssid = null;
+          }
+
+          localIp = await _networkInfo.getWifiIP();
+        } catch (e) {
+          debugPrint('NetLog: Failed to read Wi-Fi info: $e');
+        }
+      }
     }
+
+    try {
+      localIp ??= await _networkInfo.getWifiIP();
+    } catch (_) {}
 
     try {
       final ipResponse = await http
@@ -61,7 +94,9 @@ class NetworkInfoService {
         final data = jsonDecode(ipResponse.body) as Map<String, dynamic>;
         externalIp = data['ip'] as String?;
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('NetLog: Failed to fetch external IP: $e');
+    }
 
     try {
       final ispResponse = await http
@@ -71,7 +106,9 @@ class NetworkInfoService {
         final data = jsonDecode(ispResponse.body) as Map<String, dynamic>;
         ispName = data['isp'] as String?;
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('NetLog: Failed to fetch ISP info: $e');
+    }
 
     return NetworkDetails(
       ssid: ssid,

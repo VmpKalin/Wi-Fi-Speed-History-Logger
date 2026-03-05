@@ -64,11 +64,15 @@ class AppDatabase extends _$AppDatabase {
     return map;
   }
 
-  /// Returns unique network identifiers (SSID + BSSID pairs) with their test counts.
-  Future<List<SpeedResult>> getResultsForNetwork(
-      String? ssid, String? bssid) async {
+  Future<List<SpeedResult>> getResultsForNetworkGroup({
+    required String networkType,
+    required String? ssid,
+    required String? bssid,
+    required String? ispName,
+  }) async {
     final query = select(speedResults)
-      ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]);
+      ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])
+      ..where((t) => t.networkType.equals(networkType));
 
     if (ssid != null) {
       query.where((t) => t.ssid.equals(ssid));
@@ -80,6 +84,14 @@ class AppDatabase extends _$AppDatabase {
       query.where((t) => t.bssid.equals(bssid));
     } else {
       query.where((t) => t.bssid.isNull());
+    }
+
+    if (networkType == 'cellular') {
+      if (ispName != null) {
+        query.where((t) => t.ispName.equals(ispName));
+      } else {
+        query.where((t) => t.ispName.isNull());
+      }
     }
 
     return query.get();

@@ -81,14 +81,30 @@ class _NetworkCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.wifi, color: theme.colorScheme.primary),
+                  Icon(
+                    network.isCellular ? Icons.cell_tower : Icons.wifi,
+                    color: network.isCellular
+                        ? theme.colorScheme.tertiary
+                        : theme.colorScheme.primary,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      network.displayName,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          network.displayName,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          network.isCellular ? 'Mobile data' : 'Wi-Fi',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Icon(Icons.chevron_right,
@@ -105,7 +121,7 @@ class _NetworkCard extends StatelessWidget {
                     label: '${network.testCount} tests',
                     theme: theme,
                   ),
-                  if (network.ispName != null)
+                  if (network.ispName != null && network.isWifi)
                     _InfoChip(
                       icon: Icons.business,
                       label: network.ispName!,
@@ -166,6 +182,13 @@ class _NetworkReportScreen extends ConsumerWidget {
     final db = ref.watch(databaseProvider);
     final theme = Theme.of(context);
 
+    Future<List<SpeedResult>> fetchResults() => db.getResultsForNetworkGroup(
+          networkType: network.networkType,
+          ssid: network.ssid,
+          bssid: network.bssid,
+          ispName: network.ispName,
+        );
+
     return Scaffold(
       appBar: AppBar(
         title: Text(network.displayName),
@@ -173,8 +196,7 @@ class _NetworkReportScreen extends ConsumerWidget {
           PopupMenuButton<String>(
             icon: const Icon(Icons.ios_share),
             onSelected: (value) async {
-              final results =
-                  await db.getResultsForNetwork(network.ssid, network.bssid);
+              final results = await fetchResults();
               if (value == 'pdf') {
                 await ReportService.exportPdf(results, network);
               } else {
@@ -203,7 +225,7 @@ class _NetworkReportScreen extends ConsumerWidget {
         ],
       ),
       body: FutureBuilder<List<SpeedResult>>(
-        future: db.getResultsForNetwork(network.ssid, network.bssid),
+        future: fetchResults(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -222,7 +244,8 @@ class _NetworkReportScreen extends ConsumerWidget {
                 title: 'Network Details',
                 theme: theme,
                 children: [
-                  _DetailRow('SSID', network.displayName),
+                  _DetailRow('Type', network.isCellular ? 'Cellular / Mobile data' : 'Wi-Fi'),
+                  if (network.isWifi) _DetailRow('SSID', network.ssid ?? 'Unknown'),
                   if (network.bssid != null)
                     _DetailRow('BSSID', network.bssid!),
                   if (network.ispName != null)

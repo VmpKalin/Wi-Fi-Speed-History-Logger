@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'database_service.dart';
 
 class NetworkGroup {
+  final String networkType;
   final String? ssid;
   final String? bssid;
   final String? ispName;
@@ -17,10 +18,25 @@ class NetworkGroup {
   final DateTime firstTest;
   final DateTime lastTest;
 
-  String get displayName => ssid ?? 'Unknown Network';
-  String get identifier => '${ssid ?? "null"}_${bssid ?? "null"}';
+  bool get isCellular => networkType == 'cellular';
+  bool get isWifi => networkType == 'wifi';
+
+  String get displayName {
+    if (isCellular) {
+      return ispName != null ? 'Cellular — $ispName' : 'Cellular Network';
+    }
+    return ssid ?? 'Unknown Wi-Fi';
+  }
+
+  String get groupKey {
+    if (isCellular) {
+      return 'cellular_${ispName ?? "null"}';
+    }
+    return 'wifi_${ssid ?? "null"}_${bssid ?? "null"}';
+  }
 
   NetworkGroup({
+    required this.networkType,
     required this.ssid,
     required this.bssid,
     required this.ispName,
@@ -64,7 +80,12 @@ class ReportService {
     final groups = <String, List<SpeedResult>>{};
 
     for (final result in allResults) {
-      final key = '${result.ssid ?? "null"}_${result.bssid ?? "null"}';
+      final String key;
+      if (result.networkType == 'cellular') {
+        key = 'cellular_${result.ispName ?? "null"}';
+      } else {
+        key = 'wifi_${result.ssid ?? "null"}_${result.bssid ?? "null"}';
+      }
       groups.putIfAbsent(key, () => []).add(result);
     }
 
@@ -74,6 +95,7 @@ class ReportService {
       final timestamps = results.map((r) => r.timestamp).toList()..sort();
 
       return NetworkGroup(
+        networkType: first.networkType,
         ssid: first.ssid,
         bssid: first.bssid,
         ispName: results
@@ -136,6 +158,7 @@ class ReportService {
       List<SpeedResult> results, NetworkGroup network) async {
     final buffer = StringBuffer();
     buffer.writeln('NetLog - Network Speed Report');
+    buffer.writeln('Connection Type: ${network.isCellular ? "Cellular" : "Wi-Fi"}');
     buffer.writeln('Network: ${network.displayName}');
     if (network.bssid != null) buffer.writeln('BSSID: ${network.bssid}');
     if (network.ispName != null) buffer.writeln('ISP: ${network.ispName}');
@@ -164,8 +187,10 @@ class ReportService {
     }
 
     final dir = await getTemporaryDirectory();
-    final sanitizedName =
-        (network.ssid ?? 'unknown').replaceAll(RegExp(r'[^\w\s-]'), '_');
+    final namePart = network.isCellular
+        ? 'cellular_${network.ispName ?? "unknown"}'
+        : (network.ssid ?? 'unknown');
+    final sanitizedName = namePart.replaceAll(RegExp(r'[^\w\s-]'), '_');
     final file = File(
         '${dir.path}/netlog_report_$sanitizedName${DateFormat('_yyyyMMdd_HHmmss').format(DateTime.now())}.csv');
     await file.writeAsString(buffer.toString());
@@ -202,7 +227,8 @@ class ReportService {
           ),
           pw.SizedBox(height: 16),
           _pdfSection('Network Information', [
-            _pdfRow('Network Name (SSID)', network.displayName),
+            _pdfRow('Connection Type', network.isCellular ? 'Cellular / Mobile data' : 'Wi-Fi'),
+            if (network.isWifi) _pdfRow('Network Name (SSID)', network.ssid ?? 'Unknown'),
             if (network.bssid != null)
               _pdfRow('Router ID (BSSID)', network.bssid!),
             if (network.ispName != null)
@@ -294,8 +320,10 @@ class ReportService {
     );
 
     final dir = await getTemporaryDirectory();
-    final sanitizedName =
-        (network.ssid ?? 'unknown').replaceAll(RegExp(r'[^\w\s-]'), '_');
+    final namePart = network.isCellular
+        ? 'cellular_${network.ispName ?? "unknown"}'
+        : (network.ssid ?? 'unknown');
+    final sanitizedName = namePart.replaceAll(RegExp(r'[^\w\s-]'), '_');
     final file = File(
         '${dir.path}/netlog_report_$sanitizedName${DateFormat('_yyyyMMdd_HHmmss').format(now)}.pdf');
     await file.writeAsBytes(await pdf.save());
